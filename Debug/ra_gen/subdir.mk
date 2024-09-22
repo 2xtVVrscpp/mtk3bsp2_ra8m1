@@ -1,0 +1,38 @@
+################################################################################
+# Automatically-generated file. Do not edit!
+################################################################################
+
+# Add inputs and outputs from these tool invocations to the build variables 
+C_SRCS += \
+../ra_gen/common_data.c \
+../ra_gen/hal_data.c \
+../ra_gen/main.c \
+../ra_gen/pin_data.c \
+../ra_gen/vector_data.c 
+
+C_DEPS += \
+./ra_gen/common_data.d \
+./ra_gen/hal_data.d \
+./ra_gen/main.d \
+./ra_gen/pin_data.d \
+./ra_gen/vector_data.d 
+
+OBJS += \
+./ra_gen/common_data.o \
+./ra_gen/hal_data.o \
+./ra_gen/main.o \
+./ra_gen/pin_data.o \
+./ra_gen/vector_data.o 
+
+SREC += \
+mtk3bsp2_ra8m1.srec 
+
+MAP += \
+mtk3bsp2_ra8m1.map 
+
+
+# Each subdirectory must supply rules for building sources it contributes
+ra_gen/%.o: ../ra_gen/%.c
+	$(file > $@.in,-mthumb -mfloat-abi=hard -march=armv8.1-m.main+mve.fp+fp.dp -O0 -fmessage-length=0 -fsigned-char -ffunction-sections -fdata-sections -Wall -g -gdwarf-4 -D_RENESAS_RA_ -D_RA_CORE=CM85 -D_RA_ORDINAL=1 -D_RAFSP_EK_RA8M1_ -I"D:/dev/mtkernel/dev_mtk3bsp2_20000B1/mtk3bsp2_ra8m1/src" -I"." -I"D:/dev/mtkernel/dev_mtk3bsp2_20000B1/mtk3bsp2_ra8m1/ra/fsp/inc" -I"D:/dev/mtkernel/dev_mtk3bsp2_20000B1/mtk3bsp2_ra8m1/ra/fsp/inc/api" -I"D:/dev/mtkernel/dev_mtk3bsp2_20000B1/mtk3bsp2_ra8m1/ra/fsp/inc/instances" -I"D:/dev/mtkernel/dev_mtk3bsp2_20000B1/mtk3bsp2_ra8m1/ra/arm/CMSIS_5/CMSIS/Core/Include" -I"D:/dev/mtkernel/dev_mtk3bsp2_20000B1/mtk3bsp2_ra8m1/ra_gen" -I"D:/dev/mtkernel/dev_mtk3bsp2_20000B1/mtk3bsp2_ra8m1/ra_cfg/fsp_cfg/bsp" -I"D:/dev/mtkernel/dev_mtk3bsp2_20000B1/mtk3bsp2_ra8m1/ra_cfg/fsp_cfg" -I"D:/dev/mtkernel/dev_mtk3bsp2_20000B1/mtk3bsp2_ra8m1/mtk3_bsp2" -I"D:/dev/mtkernel/dev_mtk3bsp2_20000B1/mtk3bsp2_ra8m1/mtk3_bsp2/config" -I"D:/dev/mtkernel/dev_mtk3bsp2_20000B1/mtk3bsp2_ra8m1/mtk3_bsp2/include" -I"D:/dev/mtkernel/dev_mtk3bsp2_20000B1/mtk3bsp2_ra8m1/mtk3_bsp2/mtkernel/kernel/knlinc" -std=c99 -Wno-stringop-overflow -Wno-format-truncation --param=min-pagesize=0 -flax-vector-conversions -MMD -MP -MF"$(@:%.o=%.d)" -MT"$@" -c -o "$@" -x c "$<")
+	@echo Building file: $< && arm-none-eabi-gcc @"$@.in"
+
