@@ -56,3 +56,6 @@ ra/
 ra_gen/
 ra_cfg/
 ra_cfg.txt
+JLinkLog.log
+mtk3bsp2_ra8m1 Debug.jlink
+mtk3bsp2_ra8m1 Debug.launch
