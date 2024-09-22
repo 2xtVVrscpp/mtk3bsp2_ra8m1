@@ -37,8 +37,4 @@
 #include <sysdepend/ra_fsp/device/hal_i3c_i2c/hal_i3c_i2c.h>
 #endif
 
-#if DEVCNF_USE_HAL_UART
-#include <sysdepend/ra_fsp/device/hal_uart/hal_uart.h>
-#endif
-
 #endif	/* _DEV_HAL_DEVICE_H_ */
