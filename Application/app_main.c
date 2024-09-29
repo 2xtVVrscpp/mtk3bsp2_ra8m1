@@ -13,7 +13,6 @@
 
 #include <tk/tkernel.h>
 #include <tm/tmonitor.h>
-#include "sysdepend/ra_fsp/device/hal_uart/hal_uart_userif.h"
 #include "kernel.h"
 
 #define LED1 (1<<0)     // port 600
