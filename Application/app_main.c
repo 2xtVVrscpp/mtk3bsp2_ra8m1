@@ -13,6 +13,8 @@
 
 #include <tk/tkernel.h>
 #include <tm/tmonitor.h>
+#include "sysdepend/ra_fsp/device/hal_uart/hal_uart_userif.h"
+#include "kernel.h"
 
 #define LED1 (1<<0)     // port 600
 #define LED2 (1<<14)    // port 414
@@ -58,6 +60,7 @@ enum DEVICE_CODE{
 //};
 
 ID dd_com = -1;
+LOCAL UINT wflgptn = 1<<0, rflgptn;
 
 LOCAL void read_tsk(INT stacd, void *exinf);  // task execution function
 LOCAL ID    tskid_read;            // Task ID number
@@ -71,7 +74,7 @@ LOCAL T_CTSK ctsk_read = {             // Task creation information
 LOCAL void send_tsk(INT stacd, void *exinf);  // task execution function
 LOCAL ID    tskid_send;            // Task ID number
 LOCAL T_CTSK ctsk_send = {             // Task creation information
-    .itskpri    = 10,
+    .itskpri    = 8,
     .stksz      = 1024,
     .task       = send_tsk,
     .tskatr     = TA_HLNG | TA_RNG3,
@@ -107,7 +110,7 @@ LOCAL ER open_device(enum DEVICE_CODE target)
 
 LOCAL SZ get_str_siz(const char str[], const char d){
     SZ i = 0;
-    while(str[i] != d){
+    while(str[i] != '\0' && str[i] != d){
         i++;
     }
     return i;
@@ -131,31 +134,43 @@ LOCAL void read_tsk(INT stacd, void *exinf)
 
     while(1){
         err = tk_rea_dev(dd_com, 0, data_com, BUFSIZE, TMO_FEVR);
-        i = get_str_siz(data_com, '\0')+1;
+        i = get_str_siz(data_com, '\r');
         data_com[i] = (UB)'\0';
         tm_printf((UB*)"get data: %s\n", data_com);
 
         if(err >= E_OK){
             tm_printf((UB*)"Read Success %d\n", err);
             err_cnt = 0;
-        } else {
+            if (data_com[0] == 'A'){
+                out_h(PORT_PODR(5), (in_h(PORT_PODR(5)))^GPIO_LED);
+                data_com[0] = '\0';
+              }
+            if(data_com[0] == 'L' && knl_strcmp((char*)data_com, "LED1") == 0){
+                out_h(PORT_PODR(6), (in_h(PORT_PODR(6)))^LED1);
+            }else if(data_com[0] == 'L' && knl_strcmp((char*)data_com, "LED2") == 0){
+                out_h(PORT_PODR(4), (in_h(PORT_PODR(4)))^LED2);
+            }else if(data_com[0] == 'L' && knl_strcmp((char*)data_com, "LED3") == 0){
+                out_h(PORT_PODR(1), (in_h(PORT_PODR(1)))^LED3);
+              }
+
+//            err = tk_wri_dev(dd_com, 0, data_com, get_str_siz(data_com, '\0'), TMO_FEVR);
+//            if(err >= E_OK){
+//                tm_printf((UB*)"Send Success: %d\n", err);
+//            } else {
+//                tm_printf((UB*)"Send Error: %d\n", err);
+//              }
+        }else {
             tm_printf((UB*)"Read Error %d\n", err);
-            err_cnt++;
-
-            // timeout
-            if(err_cnt > 5){
-                break;
-            }
         }
-
-        tk_dly_tsk(700);
+//        read command wait the buffer so it is not needed tk_dly_tsk
+        tk_dly_tsk(100);
+        data_com[0] = (UB)'\0';
     }
     tk_ext_tsk();
 }
 
 LOCAL void send_tsk(INT stacd, void *exinf)
 {
-//  char data_com[BUFSIZE] = {'\0'};
     ER err;
     UB i = 0;
 
@@ -183,8 +198,8 @@ LOCAL void send_tsk(INT stacd, void *exinf)
                 break;
             }
         }
-
-        tk_dly_tsk(1300);
+//
+        tk_dly_tsk(1000);
     }
     tk_ext_tsk();
 }
@@ -197,70 +212,10 @@ EXPORT INT    usermain( void )
     tskid_read = tk_cre_tsk(&ctsk_read);
     tk_sta_tsk(tskid_read, 0);
 
-    tskid_send = tk_cre_tsk(&ctsk_send);
-    tk_sta_tsk(tskid_send, 0);
+//    tskid_send = tk_cre_tsk(&ctsk_send);
+//    tk_sta_tsk(tskid_send, 0);
 
     tk_slp_tsk(TMO_FEVR);
 
     return 0;
 }
-
-//LOCAL void task_1(INT stacd, void *exinf)
-//{
-//    while(1) {
-//        tm_printf((UB*)"task 1\n");
-//        out_h(PORT_PODR(6), (in_h(PORT_PODR(6)))^(LED1));
-////        out_h(PORT_PODR(4), (in_h(PORT_PODR(4)))^(LED2));
-////        out_h(PORT_PODR(1), (in_h(PORT_PODR(1)))^(LED3));
-//        tk_dly_tsk(1000);
-//    }
-//}
-//
-//LOCAL void task_2(INT stacd, void *exinf)
-//{
-//    ID dd_uart;
-//    ER err;
-//    char data_com[BUFSIZE] = {'\0'};
-//
-//    dd_uart = tk_opn_dev((UB*)"huarta", TD_UPDATE);
-//    if(dd_uart < E_OK){
-//        tm_printf((UB*)"Open Error $d\n", dd_uart);
-//        tk_ext_tsk();
-//    }
-//
-//    while(1){
-//        err = tk_rea_dev(dd_uart, 0, data_com, BUFSIZE, TMO_FEVR);
-//        if(err >= E_OK){
-//            err = tk_wri_dev(dd_uart, 0, "hello\n", 7, TMO_FEVR);
-//            if(err < E_OK){
-//                tm_printf((UB*)"Send err: %d\n", err);
-//            }
-//            if (data_com[0] == 'A'){
-//                data_com[0] = '\0';
-//                out_h(PORT_PODR(4), (in_h(PORT_PODR(4)))^LED2);
-//            }
-//            out_h(PORT_PODR(5), (in_h(PORT_PODR(5)))^GPIO_LED);
-//        } else {
-//            tm_printf((UB*)"Read Error %d\n", err);
-//        }
-//        tk_dly_tsk(500);
-//    }
-//    tk_ext_tsk();
-//
-//}
-//
-//EXPORT INT    usermain( void )
-//{
-//    tm_printf((UB*)"Start User-main program.\n");
-//
-//    /* Create & Start Tasks */
-////    tskid_1 = tk_cre_tsk(&ctsk_1);
-////    tk_sta_tsk(tskid_1, 0);
-//
-//    tskid_2 = tk_cre_tsk(&ctsk_2);
-//    tk_sta_tsk(tskid_2, 0);
-//
-//    tk_slp_tsk(TMO_FEVR);
-//
-//    return 0;
-//}

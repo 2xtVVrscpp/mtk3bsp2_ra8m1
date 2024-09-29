@@ -66,6 +66,11 @@ EXPORT ER knl_start_device( void )
     if(err < E_OK) return err;
 #endif
 
+#if DEVCNF_USE_HAL_USB
+    err = dev_init_hal_usb( DEV_HAL_USB1, &g_basic0_ctrl, &g_basic0_cfg);
+    if(err < E_OK) return err;
+#endif
+
 
 	return err;
 }

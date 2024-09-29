@@ -25,6 +25,7 @@
             <slot name="P106" secure="true"/>
             <slot name="P107" secure="true"/>
             <slot name="P112" secure="true"/>
+            <slot name="P113" secure="true"/>
             <slot name="P114" secure="true"/>
             <slot name="P115" secure="true"/>
         </peripheral>
@@ -67,6 +68,7 @@
         </peripheral>
         <peripheral name="PORT6" group="PORT">
             <slot name="P600" secure="true"/>
+            <slot name="P603" secure="true"/>
         </peripheral>
         <peripheral name="PORT8" group="PORT">
             <slot name="P800" secure="true"/>
@@ -83,10 +85,8 @@
             <slot name="PB00" secure="true"/>
             <slot name="PB01" secure="true"/>
         </peripheral>
-        <peripheral name="ADC0" group="ADC" security=""/>
-        <peripheral name="ELC">
-            <slot name="I3C" secure="true"/>
-        </peripheral>
+        <peripheral name="USB_FS" security=""/>
+        <peripheral name="USB_HS" security=""/>
         <peripheral name="ICU">
             <slot name="IRQ0" secure="true"/>
             <slot name="IRQ1" secure="true"/>

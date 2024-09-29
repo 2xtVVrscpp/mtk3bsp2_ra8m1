@@ -25,6 +25,7 @@
 #include <mtkernel/kernel/knlinc/tstdlib.h>
 #include <mtkernel/device/common/drvif/msdrvif.h>
 #include "hal_uart_cnf.h"
+#include "hal_uart_userif.h"
 
 /*
  *	hal_uart.c
@@ -44,10 +45,15 @@ typedef struct {
 } T_HAL_UART_DCB;
 
 /* Interrupt detection flag */
-LOCAL ID	id_flgid;
-LOCAL T_CFLG	id_flg	= {
+LOCAL ID	id_flgid_read;
+LOCAL T_CFLG	id_flg_read	= {
 			.flgatr		= TA_TFIFO | TA_WMUL,
 			.iflgptn	= 0,
+};
+LOCAL ID    id_flgid_write;
+LOCAL T_CFLG    id_flg_write  = {
+            .flgatr     = TA_TFIFO | TA_WMUL,
+            .iflgptn    = 0,
 };
 
 #if TK_SUPPORT_MEMLIB
@@ -57,6 +63,7 @@ LOCAL T_HAL_UART_DCB	*dev_uart_cb[DEV_HAL_UART_UNITNM];
 LOCAL T_HAL_UART_DCB	dev_uart_cb[DEV_HAL_UART_UNITNM];
 #define		get_dcb_ptr(unit)	(&dev_UART_cb[unit])
 #endif
+
 
 /*---------------------------------------------------------------------*/
 /*Device-specific data control
@@ -70,13 +77,16 @@ void HAL_UART_Callback(uart_callback_args_t *p_args)
 	ENTER_TASK_INDEPENDENT
 
 	p_dcb = (T_HAL_UART_DCB*)p_args->p_context;
-	tk_set_flg(id_flgid, 1<< p_dcb->unit);
 
 	switch(p_args->event) {
 		case UART_EVENT_TX_COMPLETE:
+		    tk_set_flg(id_flgid_write, 1<< p_dcb->unit);
+		    p_dcb->err = E_OK;
+		    break;
 		case UART_EVENT_RX_COMPLETE:
-			p_dcb->err = E_OK;
-			break;
+		    tk_set_flg(id_flgid_read, 1<< p_dcb->unit);
+		    p_dcb->err = E_OK;
+		    break;
 		default:
 			p_dcb->err = E_IO;
 			break;
@@ -93,14 +103,14 @@ LOCAL ER read_data(T_HAL_UART_DCB *p_dcb, T_DEVREQ *req)
 	fsp_err_t	fsp_err;
 
 	wflgptn = 1 << p_dcb->unit;
-	tk_clr_flg(id_flgid, ~wflgptn);
+	tk_clr_flg(id_flgid_read, ~wflgptn);
 
 	/* call hal code */
 	fsp_err = R_SCI_B_UART_Read(p_dcb->huart, (UB*)req->buf, req->size);
 	if (fsp_err != FSP_SUCCESS) return E_IO;
 	/* ---------- */
 
-	err = tk_wai_flg(id_flgid, wflgptn, TWF_ANDW | TWF_BITCLR, &rflgptn, DEV_HAL_UART_TMOUT);
+	err = tk_wai_flg(id_flgid_read, wflgptn, TWF_ANDW | TWF_BITCLR, &rflgptn, DEV_HAL_UART_TMOUT);
 	if(err >= E_OK) {
 		err = p_dcb->err;
 		if(err >= E_OK) req->asize = req->size;
@@ -116,14 +126,14 @@ LOCAL ER write_data(T_HAL_UART_DCB *p_dcb, T_DEVREQ *req)
 	fsp_err_t	fsp_err;
 
 	wflgptn = 1 << p_dcb->unit;
-	tk_clr_flg(id_flgid, ~wflgptn);
+	tk_clr_flg(id_flgid_write, ~wflgptn);
 
 	/* call hal code */
 	fsp_err = R_SCI_B_UART_Write(p_dcb->huart, (UB*)req->buf, req->size);
     if (fsp_err != FSP_SUCCESS) return E_IO;
 	/* ---------- */
 
-	err = tk_wai_flg(id_flgid, wflgptn, TWF_ANDW | TWF_BITCLR, &rflgptn, DEV_HAL_UART_TMOUT);
+	err = tk_wai_flg(id_flgid_write, wflgptn, TWF_ANDW | TWF_BITCLR, &rflgptn, DEV_HAL_UART_TMOUT);
 	if(err >= E_OK) {
 		err = p_dcb->err;
 		if(err >= E_OK) req->asize = req->size;
@@ -236,11 +246,19 @@ EXPORT ER dev_init_hal_uart( UW unit, sci_b_uart_instance_ctrl_t *huart, const u
 	p_dcb = &dev_uart_cb[unit];
 #endif
 
-	id_flgid = tk_cre_flg(&id_flg);
-	if(id_flgid <= E_OK) {
-		err = (ER)id_flgid;
+	// read flag
+	id_flgid_read = tk_cre_flg(&id_flg_read);
+	if(id_flgid_read <= E_OK) {
+		err = (ER)id_flgid_read;
 		goto err_1;
 	}
+
+	// send flag
+	id_flgid_write = tk_cre_flg(&id_flg_write);
+	    if(id_flgid_write <= E_OK) {
+	        err = (ER)id_flgid_write;
+	        goto err_1;
+	    }
 
 	/* Device registration information */
 	dmsdi.exinf     = p_dcb;

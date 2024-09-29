@@ -45,8 +45,8 @@
  */
 #define DEVCNF_USE_HAL_IIC      0   // I2C communication device (Use IIC )
 #define DEVCNF_USE_HAL_SCI_IIC  0   // I2C communication device (Use SCI )
-#define DEVCNF_USE_HAL_I3C_IIC  1   // I2C communication device (Use I3C )
+#define DEVCNF_USE_HAL_I3C_IIC  0   // I2C communication device (Use I3C )
 #define DEVCNF_USE_HAL_ADC      0   // A/D conversion device
 #define DEVCNF_USE_HAL_UART     1   // UART communication device
-
+#define DEVCNF_USE_HAL_USB      0   // USB device
 #endif	/* _MTKBSP_BSP_CONFIG_DEVENV_H_ */

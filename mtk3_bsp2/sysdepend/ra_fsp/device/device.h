@@ -41,4 +41,8 @@
 #include <sysdepend/ra_fsp/device/hal_uart/hal_uart.h>
 #endif
 
+#if DEVCNF_USE_HAL_USB
+#include <sysdepend/ra_fsp/device/hal_usb_hid/hal_usb.h>
+#endif
+
 #endif	/* _DEV_HAL_DEVICE_H_ */
