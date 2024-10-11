@@ -31,12 +31,18 @@ Android スマホであれば、Serial Bluetooth Teminalで対応可能
 
 ## 回路図
 
-下記に参考にした回路を示す。この回路からBluetoothモジュールの接続のみ利用した。実際にBluetoothモジュールのRXには抵抗をはさんだ上でrenesasマイコンのTXへ、モジュールのTXにはrenesasマイコンのRXへ直接接続した。LEDについては、今回使用したEK-RA8M1には標準で3津搭載されているのでそれらを使用した。
+下記に回路図を示す。renesasマイコンのTXからBluetoothモジュールのRXへは抵抗を挟むことで、入力電源電圧を調節している。renesasマイコンのRXはモジュールのTXへ直接接続した。LEDについては、今回使用したEK-RA8M1には標準で3つ搭載されている下記の3つを使用した。
+
+> #define LED1 (1<<0)     // port 600
+> #define LED2 (1<<14)    // port 414
+> #define LED3 (1<<7)     // port 107
 
 
+![circuit](./pic/connect_RYB080I.png)
+本プログラムで使用する回路図
 
-![circuit](./pic/Reyax-RYB080I-LED-Control.jpg)
-(refer from https://how2electronics.com/reyax-ryb080i-bluetooth-module-with-arduino/)
+<!-- ![circuit](./pic/Reyax-RYB080I-LED-Control.jpg)
+(refer from https://how2electronics.com/reyax-ryb080i-bluetooth-module-with-arduino/) -->
 
 # device-driver 追加方法
 1．configuration.xmlから各種設定
@@ -196,7 +202,7 @@ if(err < E_OK) return err;
 
 ## 4.app_main.cからデバイスを操作する。
 
-2、3章まででデバイスドライバを組み込めたため、app_main.cからそれらを使い、デバイスを操作する。下記にUARTデバイスを操作するサンプルコードを示す。ここで、tk_opn_devの引数としてhuartaを使用しているが、これは、UART1を使用していることを表す。
+2、3章まででデバイスドライバを組み込めたため、app_main.cからそれらを使い、デバイスを操作する。下記にUARTデバイスを操作するサンプルコードを示す。ここで、tk_opn_devの引数として**huarta**を使用しているが、これは、UART1を使用していることを表す。
 
 
 
@@ -225,7 +231,5 @@ if(err < E_OK){
 本レポジトリにあるプログラムでは、BluetoothモジュールであるREYAX RYB080I_liteを操作し、スマホとの通信を実現した。例えば。スマホからLED1という文字列を送るとそれを受取り、LED1を点灯させる。点灯させた後に受信した文字列をそのまま返送するようにしている。
 
 renesasマイコンの場合デバッガ機能(tm_printf)がうまく動作せずログが出せなかったため、こうした仕組みでデバッグができることを期待する。しかし、動作が不安定な部分があるため、今後更新していくつもりである。
-
-
 
 動作の確認はできていないが、stmicroのstm32h723の方でも実装したため、それについては[こちらを参照](https://github.com/2xtVVrscpp/mtk3bsp2_stm32h723)のこと
